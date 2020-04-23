@@ -11,6 +11,8 @@ type Args struct {
 	Host       string `yaml:"Host"`
 	Port       string `yaml:"Port"`
 	TotalCalls int    `yaml:"Total-Calls"`
+	GRPCHost   string `yaml:"GRPC-Host"`
+	GRPCPort   string `yaml:"GRPC-Port"`
 }
 
 // FromYAML reads YAML from rd, and returns the represented args.

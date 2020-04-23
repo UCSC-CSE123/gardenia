@@ -21,12 +21,16 @@ func TestFromYAML(t *testing.T) {
 			name: "Valid YAML",
 			args: args{
 				rd: strings.NewReader(`Host: localhost
+GRPC-Host: localhost
 Port: 8080
+GRPC-Port: 8081
 Total-Calls: 100`),
 			},
 			want: &Args{
 				Host:       "localhost",
 				Port:       "8080",
+				GRPCHost:   "localhost",
+				GRPCPort:   "8081",
 				TotalCalls: 100,
 			},
 			wantErr: false,
