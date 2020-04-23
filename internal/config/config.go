@@ -12,7 +12,7 @@ import (
 type Args struct {
 	Host          string `yaml:"Host"`
 	Port          string `yaml:"Port"`
-	Rate          int    `yaml:"Rate"`
+	TotalCalls    int    `yaml:"Total-Calls"`
 	Duration      int    `yaml:"Duration"`
 	DurationUnits string `yaml:"DurationUnits"`
 	GoDuration    time.Duration

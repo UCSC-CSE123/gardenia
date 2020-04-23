@@ -25,14 +25,14 @@ func TestFromYAML(t *testing.T) {
 Port: 8080
 Duration: 10
 DurationUnits: s
-Rate: 100`),
+Total-Calls: 100`),
 			},
 			want: &Args{
 				Host:          "localhost",
 				Port:          "8080",
 				Duration:      10,
 				DurationUnits: "s",
-				Rate:          100,
+				TotalCalls:    100,
 				GoDuration:    10 * time.Second,
 			},
 			wantErr: false,
@@ -44,7 +44,7 @@ Rate: 100`),
 Port: 8080
 Duration: 10
 DurationUnits: bad
-Rate: 100`),
+Total-Calls: 100`),
 			},
 			want:    nil,
 			wantErr: true,
