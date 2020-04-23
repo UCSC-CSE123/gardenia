@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestFromYAML(t *testing.T) {
@@ -23,28 +22,22 @@ func TestFromYAML(t *testing.T) {
 			args: args{
 				rd: strings.NewReader(`Host: localhost
 Port: 8080
-Duration: 10
-DurationUnits: s
 Total-Calls: 100`),
 			},
 			want: &Args{
-				Host:          "localhost",
-				Port:          "8080",
-				Duration:      10,
-				DurationUnits: "s",
-				TotalCalls:    100,
-				GoDuration:    10 * time.Second,
+				Host:       "localhost",
+				Port:       "8080",
+				TotalCalls: 100,
 			},
 			wantErr: false,
 		},
 		{
 			name: "Inalid YAML",
 			args: args{
-				rd: strings.NewReader(`Host: localhost
+				rd: strings.NewReader(`
+				Host: localhost
 Port: 8080
-Duration: 10
-DurationUnits: bad
-Total-Calls: 100`),
+TotalCalls: 100`),
 			},
 			want:    nil,
 			wantErr: true,
