@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/UCSC-CSE123/gardenia/internal/config"
+	"github.com/UCSC-CSE123/gardenia/internal/sunflower"
 )
 
 func main() {
@@ -26,5 +26,10 @@ func main() {
 		log.Fatalf("could not parse YAML: %v\n", err)
 	}
 
-	fmt.Println(args)
+	client := sunflower.NewClient(args)
+	resp, err := client.Sample()
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = resp
 }
