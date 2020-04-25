@@ -2,10 +2,13 @@ package main
 
 import (
 	"log"
+	"net"
 	"os"
 
+	"github.com/UCSC-CSE123/gardenia/internal/beavertail"
 	"github.com/UCSC-CSE123/gardenia/internal/config"
 	"github.com/UCSC-CSE123/gardenia/internal/sunflower"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -26,8 +29,14 @@ func main() {
 		log.Fatalf("could not parse YAML: %v\n", err)
 	}
 
-	client := sunflower.NewClient(args)
-	resp, err := client.Sample()
+	grpcConn, err := grpc.Dial(net.JoinHostPort(args.GRPCHost, args.GRPCPort), grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatal(err)
+	}
+	grpcClient := beavertail.NewPushDatagramClient(grpcConn)
+
+	client := sunflower.NewClient(args, grpcClient)
+	resp, err := client.Stress()
 	if err != nil {
 		log.Fatal(err)
 	}

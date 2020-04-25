@@ -1,11 +1,14 @@
 package sunflower
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"time"
 
+	"github.com/UCSC-CSE123/gardenia/internal/beavertail"
 	"github.com/UCSC-CSE123/gardenia/internal/config"
 )
 
@@ -31,13 +34,15 @@ type Client struct {
 	Endpoint   string
 	Frequency  time.Duration
 	TotalCalls int
+	GRPCClient beavertail.PushDatagramClient
 }
 
-func NewClient(args *config.Args) Client {
+func NewClient(args *config.Args, grpcClient beavertail.PushDatagramClient) Client {
 	return Client{
 		Host:       args.Host,
 		Port:       args.Port,
 		TotalCalls: args.TotalCalls,
+		GRPCClient: grpcClient,
 		Endpoint:   fmt.Sprintf("http://%s:%s/api/state", args.Host, args.Port),
 	}
 }
@@ -65,4 +70,30 @@ func (cli Client) Sample() ([]*Response, error) {
 	}
 
 	return responses, nil
+}
+
+func (cli Client) Stress() ([]*beavertail.DatagramAck, error) {
+	tResponses, err := cli.Sample()
+	if err != nil {
+		return nil, err
+	}
+	var tAcks []*beavertail.DatagramAck
+
+	for _, resp := range tResponses {
+		for _, bus := range resp.State.Autos {
+			push := beavertail.DatagramPush{
+				BusID:                    bus.ID,
+				PassengerCount:           uint32(bus.Count),
+				Timestamp:                time.Now().UnixNano(),
+				PassengerCountConfidence: rand.Float64() + float64(rand.Intn(100-90)+90),
+			}
+			ack, err := cli.GRPCClient.Push(context.Background(), &push)
+			if err != nil {
+				return nil, err
+			}
+			tAcks = append(tAcks, ack)
+		}
+	}
+
+	return tAcks, nil
 }
