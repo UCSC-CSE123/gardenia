@@ -36,9 +36,9 @@ func main() {
 	grpcClient := beavertail.NewPushDatagramClient(grpcConn)
 
 	client := sunflower.NewClient(args, grpcClient)
-	resp, err := client.Stress()
+	err = client.StressCSV(os.Stdout)
 	if err != nil {
 		log.Fatal(err)
 	}
-	_ = resp
+
 }
