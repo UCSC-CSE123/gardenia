@@ -97,7 +97,7 @@ func (cli Client) StressCSV(wt io.Writer, timeout ...time.Duration) error {
 	csvWT := csv.NewWriter(wt)
 
 	// Make the header
-	if err := csvWT.Write([]string{"Call #", "Duration", "Acknowledgment"}); err != nil {
+	if err := csvWT.Write([]string{"Call Number", "Duration", "Acknowledgment"}); err != nil {
 		return err
 	}
 
