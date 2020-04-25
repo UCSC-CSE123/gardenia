@@ -24,7 +24,7 @@ func TestFromYAML(t *testing.T) {
 GRPC-Host: localhost
 Sunflower-Port: 8080
 GRPC-Port: 8081
-Total-Calls: 100`),
+Sunflower-Calls: 100`),
 			},
 			want: &Args{
 				Host:       "localhost",

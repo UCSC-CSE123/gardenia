@@ -10,7 +10,7 @@ import (
 type Args struct {
 	Host       string `yaml:"Sunflower-Host"`
 	Port       string `yaml:"Sunflower-Port"`
-	TotalCalls int    `yaml:"Total-Calls"`
+	TotalCalls int    `yaml:"Sunflower-Calls"`
 	GRPCHost   string `yaml:"GRPC-Host"`
 	GRPCPort   string `yaml:"GRPC-Port"`
 }
