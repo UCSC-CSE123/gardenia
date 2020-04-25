@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("could not parse YAML: %v\n", err)
 	}
 
-	grpcConn, err := grpc.Dial(net.JoinHostPort(args.GRPCHost, args.GRPCPort), grpc.WithInsecure(), grpc.WithBlock())
+	grpcConn, err := grpc.Dial(net.JoinHostPort(args.GRPCHost, args.GRPCPort), grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
