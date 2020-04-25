@@ -20,9 +20,9 @@ func TestFromYAML(t *testing.T) {
 		{
 			name: "Valid YAML",
 			args: args{
-				rd: strings.NewReader(`Host: localhost
+				rd: strings.NewReader(`Sunflower-Host: localhost
 GRPC-Host: localhost
-Port: 8080
+Sunflower-Port: 8080
 GRPC-Port: 8081
 Total-Calls: 100`),
 			},
