@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -101,55 +102,81 @@ func (cli Client) StressCSV(wt io.Writer, timeout ...time.Duration) error {
 		return err
 	}
 
-	// Loop over each individual auto.
-	for i, resp := range tResponses {
-		for j, bus := range resp.State.Autos {
-			// Get the current time.
-			start := time.Now()
+	type resultWithTime struct {
+		ack      beavertail.DatagramAck_AckType
+		duration string
+		number   string
+	}
 
-			// Make a context.
-			var (
-				ctx                       = context.Background()
-				cancel context.CancelFunc = nil
-			)
-			if len(timeout) > 0 {
-				ctx, cancel = context.WithTimeout(ctx, timeout[0])
-			}
+	chanResults := make(chan resultWithTime, 10)
+	chanErr := make(chan error, 10)
 
-			// Make a push datagram, and send it over.
-			push := beavertail.DatagramPush{
-				BusID:                    bus.ID,
-				PassengerCount:           uint32(bus.Count),
-				Timestamp:                time.Now().UnixNano(),
-				PassengerCountConfidence: rand.Float64() + float64(rand.Intn(100-90)+90),
-			}
-			ack, err := cli.GRPCClient.Push(ctx, &push)
+	go func() {
+		// Loop over each individual auto.
+		for i, resp := range tResponses {
+			for j, bus := range resp.State.Autos {
+				time.Sleep(15 * time.Millisecond)
+				go func(i, j int) {
+					// Get the current time.
+					start := time.Now()
 
-			// Once the call is over, cancel the context.
-			// If it the timeout was called before
-			// this does nothing.
-			if cancel != nil {
-				cancel()
-			}
+					// Make a context.
+					var (
+						ctx                       = context.Background()
+						cancel context.CancelFunc = nil
+					)
 
-			// Check for errors.
-			if err != nil {
-				return err
-			}
+					if len(timeout) > 0 {
+						ctx, cancel = context.WithTimeout(ctx, timeout[0])
+					}
 
-			// Make the results.
-			results := []string{
-				strconv.Itoa(((resp.State.NumAutos * i) + j) + 1),
-				time.Since(start).String(),
-				ack.Acknowledgment.String(),
-			}
+					// Make a push datagram, and send it over.
+					push := beavertail.DatagramPush{
+						BusID:                    bus.ID,
+						PassengerCount:           uint32(bus.Count),
+						Timestamp:                time.Now().UnixNano(),
+						PassengerCountConfidence: rand.Float64() + float64(rand.Intn(100-90)+90),
+					}
 
-			// Write the result.
-			if err := csvWT.Write(results); err != nil {
-				return err
+					ack, err := cli.GRPCClient.Push(ctx, &push)
+
+					// Once the call is over, cancel the context.
+					// If it the timeout was called before
+					// this does nothing.
+					if cancel != nil {
+						cancel()
+					}
+					x := resultWithTime{
+						ack:      ack.Acknowledgment,
+						duration: time.Since(start).String(),
+						number:   strconv.Itoa(((resp.State.NumAutos * i) + j) + 1),
+					}
+					chanResults <- x
+					chanErr <- err
+				}(i, j)
 			}
-			csvWT.Flush()
 		}
+	}()
+
+	numberOfCallsToBT := tResponses[0].State.NumAutos * cli.TotalCalls
+	for i := 0; i < numberOfCallsToBT; i++ {
+		result, err := <-chanResults, <-chanErr
+		if err != nil {
+			log.Printf("failed to execute request %s, got ACK: %s: %v\n", result.number, result.ack.String(), err)
+			continue
+		}
+
+		// Make the results.
+		results := []string{
+			result.number,
+			result.duration,
+			result.ack.String(),
+		}
+		// Write the result.
+		if err := csvWT.Write(results); err != nil {
+			return err
+		}
+		csvWT.Flush()
 	}
 
 	return nil
